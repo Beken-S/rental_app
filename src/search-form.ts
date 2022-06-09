@@ -1,11 +1,11 @@
-import { renderBlock } from './lib.js'
+import { renderBlock } from './lib.js';
 
-export function renderSearchFormBlock () {
+export function renderSearchFormBlock() {
   renderBlock(
     'search-form-block',
     `
     <form>
-      <fieldset class="search-filedset">
+      <fieldset class="search-fieldset">
         <div class="row">
           <div>
             <label for="city">Город</label>
@@ -37,5 +37,5 @@ export function renderSearchFormBlock () {
       </fieldset>
     </form>
     `
-  )
+  );
 }
