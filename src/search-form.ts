@@ -1,4 +1,5 @@
 import { renderBlock } from './lib.js';
+import { IPlace, IPlaceCallback } from './place.js';
 
 export interface ISearchFormData {
   city: string;
@@ -24,17 +25,32 @@ export function searchHandler(): void {
 
   const price = Number(searchFormData.get('price'));
 
-  search({
-    city,
-    checkInDate,
-    checkOutDate,
-    price,
-  });
+  search(
+    {
+      city,
+      checkInDate,
+      checkOutDate,
+      price,
+    },
+    callback
+  );
 }
 
-export function search(data: ISearchFormData): void {
+export function search(data: ISearchFormData, callback: IPlaceCallback): void {
   console.log(data);
+  const error = Math.random() < 0.5 ? new Error('test error') : null;
+  const places: IPlace[] = error == null ? [] : null;
+
+  setTimeout(callback, 2000, error, places);
 }
+
+const callback: IPlaceCallback = (error, places) => {
+  if (error == null && places != null) {
+    console.log(places);
+  } else {
+    console.error(error);
+  }
+};
 
 export function parseDate(date: FormDataEntryValue): Date {
   const dateString = date.toString();
