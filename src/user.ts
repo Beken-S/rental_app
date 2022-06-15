@@ -13,17 +13,15 @@ export function isUser(object: unknown): object is IUser {
 }
 
 export function getUserData(): IUser {
-  const userKey: UserKey = 'user';
-  const storageValue: unknown = JSON.parse(localStorage.getItem(userKey));
+  const key: UserKey = 'user';
+  const storageValue: unknown = JSON.parse(localStorage.getItem(key));
 
   if (isUser(storageValue)) return storageValue;
 }
 
 export function getFavoritesAmount(): number {
-  const favoritesAmountKey: FavoritesAmount = 'favoritesAmount';
-  const storageValue: unknown = JSON.parse(
-    localStorage.getItem(favoritesAmountKey)
-  );
+  const key: FavoritesAmount = 'favoritesAmount';
+  const storageValue: unknown = JSON.parse(localStorage.getItem(key));
 
   if (typeof storageValue === 'number') return storageValue;
 }
