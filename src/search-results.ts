@@ -1,4 +1,4 @@
-import { renderBlock } from './lib.js'
+import { renderBlock } from './lib.js';
 
 export function renderSearchStubBlock () {
   renderBlock(
@@ -9,7 +9,7 @@ export function renderSearchStubBlock () {
       <p>Чтобы начать поиск, заполните форму и&nbsp;нажмите "Найти"</p>
     </div>
     `
-  )
+  );
 }
 
 export function renderEmptyOrErrorSearchBlock (reasonMessage) {
@@ -21,7 +21,7 @@ export function renderEmptyOrErrorSearchBlock (reasonMessage) {
       <p>${reasonMessage}</p>
     </div>
     `
-  )
+  );
 }
 
 export function renderSearchResultsBlock () {
@@ -45,7 +45,7 @@ export function renderSearchResultsBlock () {
           <div class="result-img-container">
             <div class="favorites active"></div>
             <img class="result-img" src="./img/result-1.png" alt="">
-          </div>	
+          </div>
           <div class="result-info">
             <div class="result-info--header">
               <p>YARD Residence Apart-hotel</p>
@@ -66,7 +66,7 @@ export function renderSearchResultsBlock () {
           <div class="result-img-container">
             <div class="favorites"></div>
             <img class="result-img" src="./img/result-2.png" alt="">
-          </div>	
+          </div>
           <div class="result-info">
             <div class="result-info--header">
               <p>Akyan St.Petersburg</p>
@@ -84,5 +84,5 @@ export function renderSearchResultsBlock () {
       </li>
     </ul>
     `
-  )
+  );
 }
