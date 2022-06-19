@@ -1,5 +1,9 @@
 import { renderBlock } from './lib.js';
-import { IPlace, IPlaceCallback } from './place.js';
+import { IPlace, IShowPlace, showPlace } from './place.js';
+import { parseDate } from './helpers/parse-date.js';
+import { addDays } from './helpers/add-days.js';
+import { getDateFromCurrent } from './helpers/get-date-from-current.js';
+import { getDateString } from './helpers/get-date-string.js';
 
 export interface ISearchFormData {
   city: string;
@@ -8,22 +12,28 @@ export interface ISearchFormData {
   price: number;
 }
 
+export function search(data: ISearchFormData, callback: IShowPlace): void {
+  console.log(data);
+  const error = Math.random() < 0.5 ? new Error('test error') : null;
+  const places: IPlace[] = error == null ? [] : null;
+
+  setTimeout(callback, 2000, error, places);
+}
+
 export function searchHandler(): void {
-  const searchFrom = document.getElementById('search-form');
-  const searchFormData =
-    searchFrom instanceof HTMLFormElement ? new FormData(searchFrom) : null;
+  const searchForm = document.getElementById('search-form') as HTMLFormElement;
 
-  if (searchFormData == null) return;
+  if (searchForm == null) return;
 
-  const city = searchFormData.get('city').toString();
+  const city = searchForm.get('city').toString();
 
-  const checkInDateValue = searchFormData.get('checkIn');
+  const checkInDateValue = searchForm.get('checkIn');
   const checkInDate = parseDate(checkInDateValue);
 
-  const checkOutDateValue = searchFormData.get('checkOut');
+  const checkOutDateValue = searchForm.get('checkOut');
   const checkOutDate = parseDate(checkOutDateValue);
 
-  const price = Number(searchFormData.get('price'));
+  const price = Number(searchForm.get('price'));
 
   search(
     {
@@ -32,30 +42,8 @@ export function searchHandler(): void {
       checkOutDate,
       price,
     },
-    callback
+    showPlace
   );
-}
-
-export function search(data: ISearchFormData, callback: IPlaceCallback): void {
-  console.log(data);
-  const error = Math.random() < 0.5 ? new Error('test error') : null;
-  const places: IPlace[] = error == null ? [] : null;
-
-  setTimeout(callback, 2000, error, places);
-}
-
-const callback: IPlaceCallback = (error, places) => {
-  if (error == null && places != null) {
-    console.log(places);
-  } else {
-    console.error(error);
-  }
-};
-
-export function parseDate(date: FormDataEntryValue): Date {
-  const dateString = date.toString();
-  const [year, month, day] = dateString.split('-').map((el) => Number(el));
-  return new Date(year, month, day);
 }
 
 export function renderSearchFormBlock(
@@ -74,7 +62,7 @@ export function renderSearchFormBlock(
   );
 
   const minDate = todayDate;
-  const maxDate = getMaxDate(todayDate, TWO_MONTH);
+  const maxDate = getDateFromCurrent(todayDate, TWO_MONTH);
 
   const isCheckInDateValid = checkInDate && checkInDate >= minDate;
   const isCheckOutDateValid = checkOutDate && checkOutDate <= maxDate;
@@ -144,32 +132,4 @@ export function renderSearchFormBlock(
     </form>
     `
   );
-
-  function getMaxDate(date: Date, monthLimit: number, day?: number): Date {
-    if (!day) day = 0;
-    const copyDate = new Date(date);
-    copyDate.setMonth(copyDate.getMonth() + monthLimit);
-    copyDate.setDate(day);
-
-    return copyDate;
-  }
-
-  function getDateString(date: Date): string {
-    const YEAR_LENGTH = 4;
-    const MONTH_LENGTH = 2;
-    const DAY_LENGTH = 2;
-
-    const year = String(date.getFullYear()).padStart(YEAR_LENGTH, '0');
-    const month = String(date.getMonth() + 1).padStart(MONTH_LENGTH, '0');
-    const day = String(date.getDate()).padStart(DAY_LENGTH, '0');
-
-    return `${year}-${month}-${day}`;
-  }
-
-  function addDays(date: Date, countDays: number): Date {
-    const copyDate = new Date(date);
-    copyDate.setDate(copyDate.getDate() + countDays);
-
-    return copyDate;
-  }
 }

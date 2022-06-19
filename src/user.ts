@@ -1,5 +1,5 @@
 import { renderBlock } from './lib.js';
-import { FavoritesAmount, UserKey } from './types.js';
+import { FavoritesAmount, UserKey } from './types/types.js';
 
 export interface IUser {
   username: string;
