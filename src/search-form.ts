@@ -1,49 +1,63 @@
 import { renderBlock } from './lib.js';
-import { IPlace, IShowPlace, showPlace } from './place.js';
-import { parseDate } from './helpers/parse-date.js';
 import { addDays } from './helpers/add-days.js';
 import { getDateFromCurrent } from './helpers/get-date-from-current.js';
 import { getDateString } from './helpers/get-date-string.js';
+import { fetchFoundPlaces } from './places.js';
+import { renderSearchResultsBlock } from './search-results.js';
 
 export interface ISearchFormData {
   city: string;
-  checkInDate: Date;
-  checkOutDate: Date;
-  price: number;
+  coordinates: string;
+  checkIn: number;
+  checkOut: number;
+  price?: number;
 }
 
-export function search(data: ISearchFormData, callback: IShowPlace): void {
-  console.log(data);
-  const error = Math.random() < 0.5 ? new Error('test error') : null;
-  const places: IPlace[] = error == null ? [] : null;
-
-  setTimeout(callback, 2000, error, places);
-}
-
-export function searchHandler(): void {
-  const searchForm = document.getElementById('search-form') as HTMLFormElement;
-
-  if (searchForm == null) return;
-
-  const city = searchForm.get('city').toString();
-
-  const checkInDateValue = searchForm.get('checkIn');
-  const checkInDate = parseDate(checkInDateValue);
-
-  const checkOutDateValue = searchForm.get('checkOut');
-  const checkOutDate = parseDate(checkOutDateValue);
-
-  const price = Number(searchForm.get('price'));
-
-  search(
-    {
-      city,
-      checkInDate,
-      checkOutDate,
-      price,
-    },
-    showPlace
+export function isISearchFromData(
+  object: Partial<ISearchFormData>
+): object is ISearchFormData {
+  return (
+    'city' in object &&
+    'coordinates' in object &&
+    'checkIn' in object &&
+    'checkOut' in object
   );
+}
+
+export function getSearchFormData(id: string): ISearchFormData {
+  const searchForm = document.getElementById(id);
+
+  if (!(searchForm instanceof HTMLFormElement)) return;
+
+  const formValues = new FormData(searchForm).entries();
+  const formData: Partial<ISearchFormData> = {};
+
+  for (const [key, value] of formValues) {
+    switch (key) {
+      case 'checkIn':
+      case 'checkOut':
+        formData[key] = new Date(value.toString()).getTime();
+        break;
+      case 'price':
+        formData[key] = value != '' ? Number(value.toString()) : null;
+        break;
+      default:
+        formData[key] = value.toString();
+    }
+  }
+
+  if (isISearchFromData(formData)) return formData;
+}
+
+export async function searchPlaceHandler(event: Event): Promise<void> {
+  event.preventDefault();
+
+  const { coordinates, checkIn, checkOut, price } =
+    getSearchFormData('search-form');
+
+  const places = await fetchFoundPlaces(coordinates, checkIn, checkOut, price);
+
+  renderSearchResultsBlock(places);
 }
 
 export function renderSearchFormBlock(
@@ -90,7 +104,7 @@ export function renderSearchFormBlock(
           <div>
             <label for="city">Город</label>
             <input id="city" type="text" value="Санкт-Петербург" name="city"/>
-            <input type="hidden" disabled value="59.9386,30.3141" />
+            <input type="hidden" value="59.9386,30.3141" name="coordinates" />
           </div>
           <!--<div class="providers">
             <label><input type="checkbox" name="provider" value="homy" checked /> Homy</label>
