@@ -23,17 +23,19 @@ export function search(data: ISearchFormData, callback: IShowPlace): void {
 export function searchHandler(): void {
   const searchForm = document.getElementById('search-form') as HTMLFormElement;
 
-  if (searchForm == null) return;
+  if (!(searchForm instanceof HTMLFormElement)) return;
 
-  const city = searchForm.get('city').toString();
+  const searchFormData = new FormData(searchForm);
 
-  const checkInDateValue = searchForm.get('checkIn');
+  const city = searchFormData.get('city').toString();
+
+  const checkInDateValue = searchFormData.get('checkIn');
   const checkInDate = parseDate(checkInDateValue);
 
-  const checkOutDateValue = searchForm.get('checkOut');
+  const checkOutDateValue = searchFormData.get('checkOut');
   const checkOutDate = parseDate(checkOutDateValue);
 
-  const price = Number(searchForm.get('price'));
+  const price = Number(searchFormData.get('price'));
 
   search(
     {
