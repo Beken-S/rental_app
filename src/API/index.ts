@@ -7,3 +7,6 @@ export const FIND_PLACE = (
 ) => {
   return `${API}${PLACES}${params.queryString}`;
 };
+export const PLACE_BY_ID = (id: number) => {
+  return `${API}${PLACES}/${id}`;
+};

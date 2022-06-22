@@ -1,5 +1,7 @@
 import { renderBlock } from './lib.js';
 import { IPlace } from './places.js';
+import { isFavoriteItem } from './store/favorites-items.js';
+import { toggleFavorite } from './toggle-favorite.js';
 
 export function renderSearchStubBlock() {
   renderBlock(
@@ -29,11 +31,15 @@ export function getSearchResultsMarkup(places: IPlace[]) {
   let markup = '';
 
   places.forEach((place) => {
+    const toggleId = `toggle-${place.id}`;
     markup += `
       <li class="result">
         <div class="result-container">
           <div class="result-img-container">
-            <div class="favorites active"></div>
+            <div
+              id=${toggleId}
+              class="favorites ${isFavoriteItem(toggleId) ? 'active' : ''}"
+            ></div>
             <img class="result-img" src="${place.image}" alt="">
           </div>
           <div class="result-info">
@@ -80,4 +86,9 @@ export function renderSearchResultsBlock(places: IPlace[]) {
     </ul>
     `
   );
+
+  const favoritesButton = document.querySelectorAll('.favorites');
+  favoritesButton.forEach((button) => {
+    button.addEventListener('click', toggleFavorite);
+  });
 }

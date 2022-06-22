@@ -1,13 +1,15 @@
-import { FIND_PLACE } from './API/index.js';
+import { FIND_PLACE, PLACE_BY_ID } from './API/index.js';
 import { Params } from './params.js';
+import { checkResponseOk } from './helpers/check-response-ok.js';
 
 export interface IPlace {
-  image: string;
+  id: number;
   name: string;
-  price: number;
   description: string;
   remoteness: number;
   bookedDates: number[];
+  price: number;
+  image: string;
 }
 
 export interface IShowPlace {
@@ -36,19 +38,24 @@ export async function fetchFoundPlaces(
     params.set('checkOutDate', checkOutDate);
     maxPrice != null && params.set('maxPrice', maxPrice);
 
-    const response = await fetch(FIND_PLACE(params), {
-      method: 'GET',
-      headers: {
-        'Content-type': 'application/json',
-      },
-    });
+    const response = await fetch(FIND_PLACE(params));
 
-    if (!response.ok)
-      throw new Error(
-        `Something went wrong. Response status:${response.status}`
-      );
+    checkResponseOk(response);
 
     const data = (await response.json()) as IPlace[];
+    return data;
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function fetchPlace(id: number): Promise<IPlace> {
+  try {
+    const response = await fetch(PLACE_BY_ID(id));
+
+    checkResponseOk(response);
+
+    const data = (await response.json()) as IPlace;
     return data;
   } catch (error) {
     console.error(error);

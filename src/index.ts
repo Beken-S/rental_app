@@ -1,12 +1,18 @@
 import { renderSearchFormBlock, searchPlaceHandler } from './search-form.js';
 import { renderSearchStubBlock } from './search-results.js';
-import { renderUserBlock, getUserData, getFavoritesAmount } from './user.js';
+import { renderUserBlock, getUserData } from './user.js';
 import { renderToast } from './lib.js';
+import { getFavoritesItemsAmount } from './store/favorites-items.js';
+
+localStorage.setItem(
+  'user',
+  JSON.stringify({ username: 'test', avatarUrl: '/img/avatar.png' })
+);
 
 window.addEventListener('DOMContentLoaded', () => {
   const { username, avatarUrl } = getUserData();
-  const favoritesAmount = getFavoritesAmount();
-  renderUserBlock(username, avatarUrl, favoritesAmount);
+  const favoriteItemsAmount = getFavoritesItemsAmount();
+  renderUserBlock(username, avatarUrl, favoriteItemsAmount);
   renderSearchFormBlock();
   renderSearchStubBlock();
   renderToast(
@@ -22,6 +28,6 @@ window.addEventListener('DOMContentLoaded', () => {
     }
   );
 
-  const serchForm = document.getElementById('search-form');
-  serchForm.addEventListener('submit', searchPlaceHandler);
+  const searchForm = document.getElementById('search-form');
+  searchForm.addEventListener('submit', searchPlaceHandler);
 });

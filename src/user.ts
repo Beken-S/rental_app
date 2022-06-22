@@ -1,5 +1,5 @@
 import { renderBlock } from './lib.js';
-import { FavoritesAmount, UserKey } from './types/types.js';
+import { UserKey } from './types/types.js';
 
 export interface IUser {
   username: string;
@@ -7,23 +7,17 @@ export interface IUser {
 }
 
 export function isUser(object: unknown): object is IUser {
-  if (typeof object === 'object') {
+  if (object != null && typeof object === 'object') {
     return 'username' in object && 'avatarUrl' in object;
   }
+  return false;
 }
 
-export function getUserData(): IUser {
+export function getUserData(): IUser | null {
   const key: UserKey = 'user';
   const storageValue: unknown = JSON.parse(localStorage.getItem(key));
 
   if (isUser(storageValue)) return storageValue;
-}
-
-export function getFavoritesAmount(): number {
-  const key: FavoritesAmount = 'favoritesAmount';
-  const storageValue: unknown = JSON.parse(localStorage.getItem(key));
-
-  if (typeof storageValue === 'number') return storageValue;
 }
 
 export function renderUserBlock(

@@ -1,2 +1,4 @@
 export type UserKey = 'user';
-export type FavoritesAmount = 'favoritesAmount';
+export type FavoritesAmountKey = 'favoritesAmount';
+export type FavoritesItemsKey = 'favoriteItems';
+export type Active = 'active';
