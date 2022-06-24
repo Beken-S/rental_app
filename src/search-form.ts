@@ -1,9 +1,61 @@
 import { renderBlock } from './lib.js';
+import { IPlace, IShowPlace, showPlace } from './place.js';
+import { parseDate } from './helpers/parse-date.js';
+import { addDays } from './helpers/add-days.js';
+import { getDateFromCurrent } from './helpers/get-date-from-current.js';
+import { getDateString } from './helpers/get-date-string.js';
+
+export interface ISearchFormData {
+  city: string;
+  checkInDate: Date;
+  checkOutDate: Date;
+  price: number;
+}
+
+export function search(data: ISearchFormData, callback: IShowPlace): void {
+  console.log(data);
+  const error = Math.random() < 0.5 ? new Error('test error') : null;
+  const places: IPlace[] = error == null ? [] : null;
+
+  setTimeout(callback, 2000, error, places);
+}
+
+export function searchHandler(): void {
+  const searchForm = document.getElementById('search-form') as HTMLFormElement;
+
+  if (!(searchForm instanceof HTMLFormElement)) return;
+
+  const searchFormData = new FormData(searchForm);
+
+  const city = searchFormData.get('city').toString();
+
+  const checkInDateValue = searchFormData.get('checkIn');
+  const checkInDate = parseDate(checkInDateValue);
+
+  const checkOutDateValue = searchFormData.get('checkOut');
+  const checkOutDate = parseDate(checkOutDateValue);
+
+  const price = Number(searchFormData.get('price'));
+
+  search(
+    {
+      city,
+      checkInDate,
+      checkOutDate,
+      price,
+    },
+    showPlace
+  );
+}
 
 export function renderSearchFormBlock(
   checkInDate?: Date,
   checkOutDate?: Date
 ): void {
+  const ONE_DAY = 1;
+  const TWO_DAY = 2;
+  const TWO_MONTH = 2;
+
   const nowDate = new Date();
   const todayDate = new Date(
     nowDate.getFullYear(),
@@ -12,15 +64,15 @@ export function renderSearchFormBlock(
   );
 
   const minDate = todayDate;
-  const maxDate = getMaxDate(todayDate, 2);
+  const maxDate = getDateFromCurrent(todayDate, TWO_MONTH);
 
   const isCheckInDateValid = checkInDate && checkInDate >= minDate;
   const isCheckOutDateValid = checkOutDate && checkOutDate <= maxDate;
 
-  const defaultCheckInDate = addDays(todayDate, 1);
+  const defaultCheckInDate = addDays(todayDate, ONE_DAY);
   const defaultCheckOutDate = isCheckInDateValid
-    ? addDays(checkInDate, 2)
-    : addDays(defaultCheckInDate, 2);
+    ? addDays(checkInDate, TWO_DAY)
+    : addDays(defaultCheckInDate, TWO_DAY);
 
   const minDateStr = getDateString(minDate);
   const maxDateStr = getDateString(maxDate);
@@ -34,12 +86,12 @@ export function renderSearchFormBlock(
   renderBlock(
     'search-form-block',
     `
-    <form>
+    <form id="search-form">
       <fieldset class="search-fieldset">
         <div class="row">
           <div>
             <label for="city">Город</label>
-            <input id="city" type="text" disabled value="Санкт-Петербург" />
+            <input id="city" type="text" value="Санкт-Петербург" name="city"/>
             <input type="hidden" disabled value="59.9386,30.3141" />
           </div>
           <!--<div class="providers">
@@ -82,28 +134,4 @@ export function renderSearchFormBlock(
     </form>
     `
   );
-
-  function getMaxDate(date: Date, monthLimit: number, day?: number): Date {
-    if (!day) day = 0;
-    const copyDate = new Date(date);
-    copyDate.setMonth(copyDate.getMonth() + monthLimit);
-    copyDate.setDate(day);
-
-    return copyDate;
-  }
-
-  function getDateString(date: Date): string {
-    const year = String(date.getFullYear()).padStart(4, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-
-    return `${year}-${month}-${day}`;
-  }
-
-  function addDays(date: Date, countDays: number): Date {
-    const copyDate = new Date(date);
-    copyDate.setDate(copyDate.getDate() + countDays);
-
-    return copyDate;
-  }
 }

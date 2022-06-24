@@ -1,10 +1,12 @@
-import { renderSearchFormBlock } from './search-form.js';
+import { renderSearchFormBlock, searchHandler } from './search-form.js';
 import { renderSearchStubBlock } from './search-results.js';
-import { renderUserBlock } from './user.js';
+import { renderUserBlock, getUserData, getFavoritesAmount } from './user.js';
 import { renderToast } from './lib.js';
 
 window.addEventListener('DOMContentLoaded', () => {
-  renderUserBlock('test', '/img/avatar.png', 1);
+  const { username, avatarUrl } = getUserData();
+  const favoritesAmount = getFavoritesAmount();
+  renderUserBlock(username, avatarUrl, favoritesAmount);
   renderSearchFormBlock();
   renderSearchStubBlock();
   renderToast(
@@ -19,4 +21,5 @@ window.addEventListener('DOMContentLoaded', () => {
       },
     }
   );
+  searchHandler();
 });

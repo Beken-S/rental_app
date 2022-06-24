@@ -1,9 +1,35 @@
 import { renderBlock } from './lib.js';
+import { FavoritesAmount, UserKey } from './types/types.js';
+
+export interface IUser {
+  username: string;
+  avatarUrl: string;
+}
+
+export function isUser(object: unknown): object is IUser {
+  if (typeof object === 'object') {
+    return 'username' in object && 'avatarUrl' in object;
+  }
+}
+
+export function getUserData(): IUser {
+  const key: UserKey = 'user';
+  const storageValue: unknown = JSON.parse(localStorage.getItem(key));
+
+  if (isUser(storageValue)) return storageValue;
+}
+
+export function getFavoritesAmount(): number {
+  const key: FavoritesAmount = 'favoritesAmount';
+  const storageValue: unknown = JSON.parse(localStorage.getItem(key));
+
+  if (typeof storageValue === 'number') return storageValue;
+}
 
 export function renderUserBlock(
   username: string,
   linkToAvatar: string,
-  favoriteItemsAmount: number
+  favoriteItemsAmount = 0
 ) {
   const hasFavoriteItems = favoriteItemsAmount < 1 ? false : true;
   const favoritesCaption = hasFavoriteItems
