@@ -4,6 +4,7 @@ import { getDateFromCurrent } from './helpers/get-date-from-current.js';
 import { getDateString } from './helpers/get-date-string.js';
 import { fetchFoundPlaces } from './places.js';
 import { renderSearchResultsBlock } from './search-results.js';
+import { SearchFormId } from './types/types.js';
 
 export interface ISearchFormData {
   city: string;
@@ -52,8 +53,8 @@ export function getSearchFormData(id: string): ISearchFormData {
 export async function searchPlaceHandler(event: Event): Promise<void> {
   event.preventDefault();
 
-  const { coordinates, checkIn, checkOut, price } =
-    getSearchFormData('search-form');
+  const fromId: SearchFormId = 'search-form';
+  const { coordinates, checkIn, checkOut, price } = getSearchFormData(fromId);
 
   const places = await fetchFoundPlaces(coordinates, checkIn, checkOut, price);
 
@@ -139,11 +140,14 @@ export function renderSearchFormBlock(
             <input id="max-price" type="text" value="" name="price" class="max-price" />
           </div>
           <div>
-            <div><button>Найти</button></div>
+            <button class="search-form-button">Найти</button>
           </div>
         </div>
       </fieldset>
     </form>
     `
   );
+
+  const searchForm = document.getElementById('search-form');
+  searchForm.addEventListener('submit', searchPlaceHandler);
 }

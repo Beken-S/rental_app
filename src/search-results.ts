@@ -2,6 +2,7 @@ import { renderBlock } from './lib.js';
 import { IPlace } from './places.js';
 import { isFavoriteItem } from './store/favorites-items.js';
 import { toggleFavorite } from './toggle-favorite.js';
+import { toBook } from './to-book.js';
 
 export function renderSearchStubBlock() {
   renderBlock(
@@ -32,6 +33,7 @@ export function getSearchResultsMarkup(places: IPlace[]) {
 
   places.forEach((place) => {
     const toggleId = `toggle-${place.id}`;
+    const toBookId = `to-book-${place.id}`;
     markup += `
       <li class="result">
         <div class="result-container">
@@ -54,7 +56,7 @@ export function getSearchResultsMarkup(places: IPlace[]) {
             <div class="result-info--descr">${place.description}</div>
             <div class="result-info--footer">
               <div>
-                <button>Забронировать</button>
+                <button id="${toBookId}">Забронировать</button>
               </div>
             </div>
           </div>
@@ -87,8 +89,15 @@ export function renderSearchResultsBlock(places: IPlace[]) {
     `
   );
 
-  const favoritesButton = document.querySelectorAll('.favorites');
-  favoritesButton.forEach((button) => {
+  const favoritesButtons = document.querySelectorAll('.favorites');
+  favoritesButtons.forEach((button) => {
     button.addEventListener('click', toggleFavorite);
+  });
+
+  const toBookButtons = document.querySelectorAll(
+    '.result-info--footer button'
+  );
+  toBookButtons.forEach((button) => {
+    button.addEventListener('click', toBook);
   });
 }

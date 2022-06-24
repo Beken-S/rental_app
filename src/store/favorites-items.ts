@@ -98,7 +98,8 @@ export function getFavoritesItemsAmount(): number | null {
   const favoriteAmount: unknown =
     storageValue != null && JSON.parse(storageValue);
 
-  if (typeof favoriteAmount === 'number') return favoriteAmount;
+  if (typeof favoriteAmount === 'number' && !isNaN(favoriteAmount))
+    return favoriteAmount;
 }
 
 export function updateFavoritesItemsAmount(): void {
