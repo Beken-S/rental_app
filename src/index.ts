@@ -1,8 +1,9 @@
 import { renderSearchFormBlock } from './search-form.js';
 import { renderSearchStubBlock } from './search-results.js';
 import { renderUserBlock, getUserData } from './user.js';
-import { renderToast } from './lib.js';
 import { getFavoritesItemsAmount } from './store/favorites-items.js';
+import { Timer } from './timer.js';
+import { bookTimeLimitHandler } from './search-results.js';
 
 localStorage.setItem(
   'user',
@@ -12,7 +13,11 @@ localStorage.setItem(
 window.addEventListener('DOMContentLoaded', () => {
   const { username, avatarUrl } = getUserData();
   const favoriteItemsAmount = getFavoritesItemsAmount();
+  const timer: Timer = new Timer();
+
   renderUserBlock(username, avatarUrl, favoriteItemsAmount);
-  renderSearchFormBlock();
+  renderSearchFormBlock(null, null, timer);
   renderSearchStubBlock();
+
+  document.addEventListener('timer-end', bookTimeLimitHandler);
 });

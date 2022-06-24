@@ -5,6 +5,7 @@ import { getDateString } from './helpers/get-date-string.js';
 import { fetchFoundPlaces } from './places.js';
 import { renderSearchResultsBlock } from './search-results.js';
 import { SearchFormId } from './types/types.js';
+import { Timer } from './timer.js';
 
 export interface ISearchFormData {
   city: string;
@@ -50,7 +51,10 @@ export function getSearchFormData(id: string): ISearchFormData {
   if (isISearchFromData(formData)) return formData;
 }
 
-export async function searchPlaceHandler(event: Event): Promise<void> {
+export async function searchPlaceHandler(
+  event: Event,
+  timer?: Timer
+): Promise<void> {
   event.preventDefault();
 
   const fromId: SearchFormId = 'search-form';
@@ -59,11 +63,14 @@ export async function searchPlaceHandler(event: Event): Promise<void> {
   const places = await fetchFoundPlaces(coordinates, checkIn, checkOut, price);
 
   renderSearchResultsBlock(places);
+  if (timer.id != null) timer.stop();
+  timer.start(3e5);
 }
 
 export function renderSearchFormBlock(
   checkInDate?: Date,
-  checkOutDate?: Date
+  checkOutDate?: Date,
+  timer?: Timer
 ): void {
   const ONE_DAY = 1;
   const TWO_DAY = 2;
@@ -149,5 +156,7 @@ export function renderSearchFormBlock(
   );
 
   const searchForm = document.getElementById('search-form');
-  searchForm.addEventListener('submit', searchPlaceHandler);
+  searchForm.addEventListener('submit', (event) =>
+    searchPlaceHandler(event, timer)
+  );
 }

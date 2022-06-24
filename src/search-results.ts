@@ -3,6 +3,7 @@ import { IPlace } from './places.js';
 import { isFavoriteItem } from './store/favorites-items.js';
 import { toggleFavorite } from './toggle-favorite.js';
 import { toBook } from './to-book.js';
+import { renderToast } from './lib.js';
 
 export function renderSearchStubBlock() {
   renderBlock(
@@ -100,4 +101,26 @@ export function renderSearchResultsBlock(places: IPlace[]) {
   toBookButtons.forEach((button) => {
     button.addEventListener('click', toBook);
   });
+}
+
+export function bookTimeLimitHandler(): void {
+  const toBookButtons = document.querySelectorAll(
+    '.result-info--footer button'
+  );
+  toBookButtons.forEach((button) =>
+    button.setAttribute('disabled', 'disabled')
+  );
+
+  renderToast(
+    {
+      text: 'Пожалуйста обновите результаты поиска.',
+      type: 'error',
+    },
+    {
+      name: 'Закрыть',
+      handler: () => {
+        console.log('Уведомление закрыто');
+      },
+    }
+  );
 }
