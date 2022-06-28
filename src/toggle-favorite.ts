@@ -1,3 +1,4 @@
+import { ISource } from './sources.js';
 import {
   getFavoritesItems,
   addFavoriteItem,
@@ -6,7 +7,10 @@ import {
 } from './store/favorites-items.js';
 import { Active } from './types/types.js';
 
-export async function toggleFavorite(event: Event): Promise<void> {
+export async function toggleFavorite(
+  event: Event,
+  sources: ISource[]
+): Promise<void> {
   const target = event.target;
   const toggleClass: Active = 'active';
 
@@ -14,7 +18,7 @@ export async function toggleFavorite(event: Event): Promise<void> {
 
   const store = getFavoritesItems();
   if (store == null) {
-    await addFavoriteItem(target.id, {});
+    await addFavoriteItem(target.id, {}, sources);
     target.classList.add(toggleClass);
     updateFavoritesItemsAmount();
   } else if (store[target.id] != null) {
@@ -22,7 +26,7 @@ export async function toggleFavorite(event: Event): Promise<void> {
     target.classList.remove(toggleClass);
     updateFavoritesItemsAmount();
   } else {
-    await addFavoriteItem(target.id, store);
+    await addFavoriteItem(target.id, store, sources);
     target.classList.add(toggleClass);
     updateFavoritesItemsAmount();
   }

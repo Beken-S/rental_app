@@ -1,10 +1,16 @@
-import { fetchPlace } from '../places.js';
 import { isEmptyObject } from '../helpers/is-empty.js';
+import { ISource } from '../sources.js';
 import { FavoritesItemsKey, FavoritesAmountKey } from '../types/types.js';
 import { renderUserBlock, getUserData } from '../user.js';
+import { ToggleIdPrefix } from '../types/types.js';
+import { getCleanIdAndSource } from '../helpers/get-clean-id.js';
+import { HomyAPI } from '../API/homy-api.js';
+import { IPlace } from '../places.js';
+import { FlatRentSdk } from '../SDK/flat-rent-sdk.js';
+import { convertFlatRentToIPlace } from '../search-form.js';
 
 export interface IFavoriteItem {
-  id: number;
+  id: string;
   name: string;
   image: string;
 }
@@ -60,20 +66,54 @@ export function getFavoritesItemsCount(): number | null {
 
 export async function addFavoriteItem(
   targetId: string,
-  store: IFavoriteItemsStore
+  store: IFavoriteItemsStore,
+  sources: ISource[]
 ): Promise<void> {
-  const key: FavoritesItemsKey = 'favoriteItems';
-  const matchResult = targetId.match(/\d*$/);
+  try {
+    const key: FavoritesItemsKey = 'favoriteItems';
+    const idPrefix: ToggleIdPrefix = 'toggle-';
+    const { source: sourceName, id: placeId } = getCleanIdAndSource(
+      targetId,
+      idPrefix,
+      '_'
+    );
 
-  if (matchResult != null && matchResult[0] !== '') {
-    const placeId = Number(matchResult[0]);
-    const { id, name, image } = await fetchPlace(placeId);
+    if (sourceName == null || placeId == null) {
+      throw new Error(`Invalid id: ${targetId}`);
+    }
+
+    const { api } = sources.find((source) => source.name === sourceName);
+
+    let place: IPlace;
+
+    if (api instanceof HomyAPI) {
+      const response = await api.get(placeId);
+
+      if (response instanceof Error) throw response;
+
+      place = response;
+    }
+
+    if (api instanceof FlatRentSdk) {
+      const response = await api.get(placeId);
+
+      if (response instanceof Error) throw response;
+
+      const convertedData = convertFlatRentToIPlace(response);
+
+      if (Array.isArray(convertedData)) return;
+
+      place = convertedData;
+    }
+
     store[targetId] = {
-      id,
-      name,
-      image,
+      id: place.id,
+      name: place.name,
+      image: place.image,
     };
     localStorage.setItem(key, JSON.stringify(store));
+  } catch (error) {
+    console.error(error.message);
   }
 }
 

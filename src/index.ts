@@ -16,7 +16,7 @@ window.addEventListener('DOMContentLoaded', () => {
   const timer: Timer = new Timer();
 
   renderUserBlock(username, avatarUrl, favoriteItemsAmount);
-  renderSearchFormBlock(null, null, timer);
+  renderSearchFormBlock(timer);
   renderSearchStubBlock();
 
   document.addEventListener('timer-end', bookTimeLimitHandler);

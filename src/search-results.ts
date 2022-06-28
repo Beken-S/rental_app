@@ -4,6 +4,8 @@ import { isFavoriteItem } from './store/favorites-items.js';
 import { toggleFavorite } from './toggle-favorite.js';
 import { toBook } from './to-book.js';
 import { renderToast } from './lib.js';
+import { ToBookIdPrefix, ToggleIdPrefix } from './types/types.js';
+import { ISource } from './sources.js';
 
 export function renderSearchStubBlock() {
   renderBlock(
@@ -33,8 +35,11 @@ export function getSearchResultsMarkup(places: IPlace[]) {
   let markup = '';
 
   places.forEach((place) => {
-    const toggleId = `toggle-${place.id}`;
-    const toBookId = `to-book-${place.id}`;
+    const { id, name, description, remoteness, image, price, source } = place;
+    const toggleIdPrefix: ToggleIdPrefix = 'toggle-';
+    const toggleId = `${toggleIdPrefix}${source}_${id}`;
+    const toBookIdPrefix: ToBookIdPrefix = 'to-book-';
+    const toBookId = `${toBookIdPrefix}${source}_${id}`;
     markup += `
       <li class="result">
         <div class="result-container">
@@ -43,18 +48,18 @@ export function getSearchResultsMarkup(places: IPlace[]) {
               id=${toggleId}
               class="favorites ${isFavoriteItem(toggleId) ? 'active' : ''}"
             ></div>
-            <img class="result-img" src="${place.image}" alt="">
+            <img class="result-img" src="${image}" alt="">
           </div>
           <div class="result-info">
             <div class="result-info--header">
-              <p>${place.name}</p>
-              <p class="price">${place.price}&#8381;</p>
+              <p>${name}</p>
+              <p class="price">${price}&#8381;</p>
             </div>
             <div class="result-info--map">
               <i class="map-icon"></i>
-              ${place.remoteness}км от вас
+              ${remoteness != null ? remoteness : '-'}км от вас
             </div>
-            <div class="result-info--descr">${place.description}</div>
+            <div class="result-info--descr">${description}</div>
             <div class="result-info--footer">
               <div>
                 <button id="${toBookId}">Забронировать</button>
@@ -69,7 +74,7 @@ export function getSearchResultsMarkup(places: IPlace[]) {
   return markup;
 }
 
-export function renderSearchResultsBlock(places: IPlace[]) {
+export function renderSearchResultsBlock(places: IPlace[], sources: ISource[]) {
   renderBlock(
     'search-results-block',
     `
@@ -92,14 +97,14 @@ export function renderSearchResultsBlock(places: IPlace[]) {
 
   const favoritesButtons = document.querySelectorAll('.favorites');
   favoritesButtons.forEach((button) => {
-    button.addEventListener('click', toggleFavorite);
+    button.addEventListener('click', (event) => toggleFavorite(event, sources));
   });
 
   const toBookButtons = document.querySelectorAll(
     '.result-info--footer button'
   );
   toBookButtons.forEach((button) => {
-    button.addEventListener('click', toBook);
+    button.addEventListener('click', (event) => toBook(event, sources));
   });
 }
 
