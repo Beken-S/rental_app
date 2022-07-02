@@ -4,187 +4,79 @@ import { getDateFromCurrent } from './helpers/get-date-from-current.js';
 import { getDateString } from './helpers/get-date-string.js';
 import { renderSearchResultsBlock } from './search-results.js';
 import { SearchFormId } from './types/types.js';
-import { Timer } from './timer.js';
-import {
-  IFlatRentSearchParameters,
-  IFormattedFlatRentPlace,
-} from './SDK/flat-rent-sdk.js';
-import { HomyAPISearchParameters } from './API/homy-api.js';
-import {
-  ISource,
-  SourceName,
-  isHomyAPISource,
-  isFlatRentSource,
-  createSource,
-} from './sources.js';
-import { IPlace } from './places.js';
+import { Coordinates } from './store/providers/flat-rent-sdk/flat-rent-sdk.js';
+import { Provider } from './store/domain/provider.js';
+import { HomyProvider } from './store/providers/homy-api/homy-api-provider.js';
+import { Providers } from './store/domain/providers.js';
+import { FlatRentProvider } from './store/providers/flat-rent-sdk/flat-rent-sdk-provider.js';
+import { getCoordinates } from './helpers/get-coordinates.js';
+import { SearchFilter } from './store/domain/search-filter.js';
+import { Place } from './store/domain/place.js';
+import { store } from './store/store.js';
+import { timer } from './timer.js';
 
-export type SearchParameters =
-  | HomyAPISearchParameters
-  | IFlatRentSearchParameters;
-
-export function isHomyAPISearchParameters(
-  parameters: SearchParameters
-): parameters is HomyAPISearchParameters {
-  return 'coordinates' in parameters;
+export interface SearchFormData {
+  filter: SearchFilter;
+  providers: Provider[];
 }
 
-export function isIFlatRentSearchParameters(
-  parameters: SearchParameters
-): parameters is IFlatRentSearchParameters {
-  return 'city' in parameters;
-}
+export function getSearchFormData(id: string): SearchFormData | null {
+  const form = document.getElementById(id);
 
-export interface ISearchFormData {
-  city: string;
-  coordinates: string;
-  checkIn: number;
-  checkOut: number;
-  price?: number;
-  sources: ISource[];
-}
+  if (form instanceof HTMLFormElement) {
+    const formData = new FormData(form);
 
-export function isISearchFromData(
-  object: Partial<ISearchFormData>
-): object is ISearchFormData {
-  return (
-    'city' in object &&
-    'coordinates' in object &&
-    'checkIn' in object &&
-    'checkOut' in object &&
-    'sources' in object
-  );
-}
+    const coordinates: Coordinates = getCoordinates(
+      formData.get('coordinates').toString()
+    );
 
-export function getSearchFormData(id: string): ISearchFormData | null {
-  const searchForm = document.getElementById(id);
+    const providers: Provider[] = formData.getAll('provider').map((value) => {
+      if (value === Providers.HomyAPI) {
+        return new HomyProvider();
+      }
+      if (value === Providers.FlatRentSDK) {
+        return new FlatRentProvider(coordinates);
+      }
+    });
 
-  if (!(searchForm instanceof HTMLFormElement)) return;
+    const city = formData.get('city').toString();
+    const checkInDate = new Date(formData.get('checkIn').toString());
+    const checkOutDate = new Date(formData.get('checkOut').toString());
+    const price = formData.get('price').toString();
+    const priceLimit = price != '' ? Number(price) : null;
 
-  const formValues = new FormData(searchForm).entries();
-  const formData: Partial<ISearchFormData> = {};
-  const sources: ISource[] = [];
-
-  for (const [key, value] of formValues) {
-    switch (key) {
-      case 'checkIn':
-      case 'checkOut':
-        formData[key] = new Date(value.toString()).getTime();
-        break;
-      case 'price':
-        formData[key] = value != '' ? Number(value.toString()) : null;
-        break;
-      case 'provider':
-        if (value === 'Homy-API' || value === 'Flat-Rent-SDK') {
-          sources.push(createSource(value));
-          formData['sources'] = sources;
-        }
-        break;
-      default:
-        formData[key] = value.toString();
-    }
-  }
-
-  if (isISearchFromData(formData)) return formData;
-}
-
-export function convertFlatRentToIPlace(
-  data: IFormattedFlatRentPlace | IFormattedFlatRentPlace[]
-): IPlace | IPlace[] {
-  const convert = (data: IFormattedFlatRentPlace) => {
-    const { id, title, details, photos, bookedDates, totalPrice } = data;
-    const source: SourceName = 'Flat-Rent-SDK';
-    return {
-      id,
-      source,
-      bookedDates,
-      name: title,
-      description: details,
-      price: totalPrice,
-      image: photos[0],
+    const filter: SearchFilter = {
+      checkInDate,
+      checkOutDate,
+      coordinates: coordinates.join(','),
     };
-  };
 
-  if (Array.isArray(data)) return data.map(convert);
+    if (city != null) filter.city = city;
+    if (priceLimit != null) filter.priceLimit = priceLimit;
 
-  return convert(data);
-}
-
-export async function searchInSource(
-  source: ISource,
-  parameters: SearchParameters
-): Promise<IPlace[] | null> {
-  if (isHomyAPISource(source) && isHomyAPISearchParameters(parameters)) {
-    const data = await source.api.search(parameters);
-
-    if (data instanceof Error) {
-      console.error(data.message);
-      return;
-    }
-
-    return data;
-  }
-
-  if (isFlatRentSource(source) && isIFlatRentSearchParameters(parameters)) {
-    const data = await source.api.search(parameters);
-
-    if (data instanceof Error) {
-      console.error(data.message);
-      return;
-    }
-
-    const convertedData = convertFlatRentToIPlace(data);
-
-    if (!Array.isArray(convertedData)) return;
-
-    return convertedData;
+    return { filter, providers };
   }
 }
 
-export async function searchPlaceHandler(
-  event: Event,
-  timer?: Timer
-): Promise<void> {
+export async function search(data: SearchFormData): Promise<void> {
+  const { providers, filter } = data;
+  const searchResult = await Promise.all(
+    providers.map((provider) => provider.search(filter))
+  );
+
+  const places: Place[] = [].concat(...searchResult);
+
+  store.searchResult = places;
+}
+
+export async function searchPlaceHandler(event: Event): Promise<void> {
   event.preventDefault();
+  const formId: SearchFormId = 'search-form';
+  const fromData = getSearchFormData(formId);
 
-  const fromId: SearchFormId = 'search-form';
-  const { city, coordinates, checkIn, checkOut, price, sources } =
-    getSearchFormData(fromId);
+  await search(fromData);
 
-  let places: IPlace[] = [];
-
-  for (const source of sources) {
-    let parameters: SearchParameters;
-
-    switch (source.name) {
-      case 'Homy-API': {
-        parameters = {
-          coordinates,
-          checkInDate: checkIn,
-          checkOutDate: checkOut,
-        };
-
-        if (price != null) parameters.maxPrice = price;
-
-        break;
-      }
-      case 'Flat-Rent-SDK': {
-        parameters = {
-          city,
-          checkInDate: new Date(checkIn),
-          checkOutDate: new Date(checkOut),
-          priceLimit: price,
-        };
-        break;
-      }
-      default:
-    }
-
-    const searchResult = await searchInSource(source, parameters);
-    if (searchResult != null) places = [...places, ...searchResult];
-  }
-
-  renderSearchResultsBlock(places, sources);
+  renderSearchResultsBlock();
   if (timer.id != null) timer.stop();
   timer.start(3e5);
 }
@@ -200,16 +92,12 @@ export function checkProviderHandler(
 }
 
 export function renderSearchFormBlock(
-  timer?: Timer,
   checkInDate?: Date,
   checkOutDate?: Date
 ): void {
   const ONE_DAY = 1;
   const TWO_DAY = 2;
   const TWO_MONTH = 2;
-  const homy: SourceName = 'Homy-API';
-  const flatRent: SourceName = 'Flat-Rent-SDK';
-
   const nowDate = new Date();
   const todayDate = new Date(
     nowDate.getFullYear(),
@@ -249,8 +137,24 @@ export function renderSearchFormBlock(
             <input type="hidden" value="59.9386,30.3141" name="coordinates" />
           </div>
           <div class="providers">
-            <label><input type="checkbox" name="provider" value="${homy}" checked /> Homy</label>
-            <label><input type="checkbox" name="provider" value="${flatRent}" checked /> FlatRent</label>
+            <label>
+              <input
+                type="checkbox"
+                name="provider"
+                value="${Providers.HomyAPI}"
+                checked
+              />
+              Homy
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                name="provider"
+                value="${Providers.FlatRentSDK}"
+                checked
+              />
+              FlatRent
+            </label>
           </div>
         </div>
         <div class="row">
@@ -278,7 +182,13 @@ export function renderSearchFormBlock(
           </div>
           <div>
             <label for="max-price">Макс. цена суток</label>
-            <input id="max-price" type="text" value="" name="price" class="max-price" />
+            <input
+              id="max-price"
+              type="text"
+              value=""
+              name="price"
+              class="max-price"
+            />
           </div>
           <div>
             <button class="search-form-button">Найти</button>
@@ -290,9 +200,7 @@ export function renderSearchFormBlock(
   );
 
   const searchForm = document.getElementById('search-form');
-  searchForm.addEventListener('submit', (event) =>
-    searchPlaceHandler(event, timer)
-  );
+  searchForm.addEventListener('submit', searchPlaceHandler);
 
   const checkboxProvider = document.querySelectorAll('input[name="provider"]');
 

@@ -16,3 +16,5 @@ export class Timer {
     if (this.id != null) clearTimeout(this.id);
   }
 }
+
+export const timer: Timer = new Timer();

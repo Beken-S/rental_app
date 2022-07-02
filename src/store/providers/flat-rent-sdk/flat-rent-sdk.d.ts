@@ -27,11 +27,11 @@ export interface IFlatRentSearchParameters {
 }
 
 export class FlatRentSdk {
-  get(id: string): Promise<IFormattedFlatRentPlace | null>;
-  search(
+  public get(id: string): Promise<IFormattedFlatRentPlace | null>;
+  public search(
     parameters: IFlatRentSearchParameters
   ): Promise<IFormattedFlatRentPlace[] | Error>;
-  book(
+  public book(
     flatId: string,
     checkInDate: Date,
     checkOutDate: Date

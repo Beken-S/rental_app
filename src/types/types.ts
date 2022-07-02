@@ -1,6 +1,7 @@
 export type UserKey = 'user';
 export type FavoritesAmountKey = 'favoritesAmount';
 export type FavoritesItemsKey = 'favoriteItems';
+export type SearchResultKey = 'searchResult';
 export type Active = 'active';
 export type SearchFormId = 'search-form';
 export type ToggleIdPrefix = 'toggle-';

@@ -1,11 +1,12 @@
-import { renderBlock } from './lib.js';
-import { IPlace } from './places.js';
-import { isFavoriteItem } from './store/favorites-items.js';
-import { toggleFavorite } from './toggle-favorite.js';
-import { toBook } from './to-book.js';
-import { renderToast } from './lib.js';
+import {
+  renderBlock,
+  toggleFavorite,
+  toBook,
+  renderToast,
+  isFavoriteItem,
+} from './lib.js';
 import { ToBookIdPrefix, ToggleIdPrefix } from './types/types.js';
-import { ISource } from './sources.js';
+import { store } from './store/store.js';
 
 export function renderSearchStubBlock() {
   renderBlock(
@@ -31,15 +32,17 @@ export function renderEmptyOrErrorSearchBlock(reasonMessage) {
   );
 }
 
-export function getSearchResultsMarkup(places: IPlace[]) {
+export function getSearchResultsMarkup() {
+  const places = store.searchResult;
+
   let markup = '';
 
   places.forEach((place) => {
-    const { id, name, description, remoteness, image, price, source } = place;
+    const { name, description, remoteness, image, price } = place;
     const toggleIdPrefix: ToggleIdPrefix = 'toggle-';
-    const toggleId = `${toggleIdPrefix}${source}_${id}`;
+    const toggleId = `${toggleIdPrefix}${place.id}`;
     const toBookIdPrefix: ToBookIdPrefix = 'to-book-';
-    const toBookId = `${toBookIdPrefix}${source}_${id}`;
+    const toBookId = `${toBookIdPrefix}${place.id}`;
     markup += `
       <li class="result">
         <div class="result-container">
@@ -57,7 +60,7 @@ export function getSearchResultsMarkup(places: IPlace[]) {
             </div>
             <div class="result-info--map">
               <i class="map-icon"></i>
-              ${remoteness != null ? remoteness : '-'}км от вас
+              ${remoteness != null ? remoteness : '-'} км от вас
             </div>
             <div class="result-info--descr">${description}</div>
             <div class="result-info--footer">
@@ -74,7 +77,7 @@ export function getSearchResultsMarkup(places: IPlace[]) {
   return markup;
 }
 
-export function renderSearchResultsBlock(places: IPlace[], sources: ISource[]) {
+export function renderSearchResultsBlock() {
   renderBlock(
     'search-results-block',
     `
@@ -90,21 +93,21 @@ export function renderSearchResultsBlock(places: IPlace[], sources: ISource[]) {
         </div>
     </div>
     <ul class="results-list">
-      ${getSearchResultsMarkup(places)}
+      ${getSearchResultsMarkup()}
     </ul>
     `
   );
 
   const favoritesButtons = document.querySelectorAll('.favorites');
   favoritesButtons.forEach((button) => {
-    button.addEventListener('click', (event) => toggleFavorite(event, sources));
+    button.addEventListener('click', (event) => toggleFavorite(event));
   });
 
   const toBookButtons = document.querySelectorAll(
     '.result-info--footer button'
   );
   toBookButtons.forEach((button) => {
-    button.addEventListener('click', (event) => toBook(event, sources));
+    button.addEventListener('click', (event) => toBook(event));
   });
 }
 
