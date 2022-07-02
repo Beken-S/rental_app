@@ -104,6 +104,30 @@ export class Store {
   public set searchResult(places: Place[]) {
     this._searchResult = places;
   }
+
+  public sortSearchResultByDescendingPrice() {
+    this._searchResult = this._searchResult.sort((a, b) => {
+      if (a.price < b.price) return 1;
+      if (a.price > b.price) return -1;
+      return 0;
+    });
+  }
+
+  public sortSearchResultByAscendingPrice() {
+    this._searchResult = this._searchResult.sort((a, b) => {
+      if (a.price < b.price) return -1;
+      if (a.price > b.price) return 1;
+      return 0;
+    });
+  }
+
+  public sortSearchResultByCloser() {
+    this._searchResult = this._searchResult.sort((a, b) => {
+      if (a.remoteness < b.remoteness) return -1;
+      if (a.remoteness > b.remoteness) return 1;
+      return 0;
+    });
+  }
 }
 
 export const store = new Store({

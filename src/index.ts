@@ -1,7 +1,7 @@
 import { renderSearchFormBlock } from './search-form.js';
 import { renderSearchStubBlock } from './search-results.js';
 import { renderUserBlock } from './user.js';
-import { bookTimeLimitHandler } from './search-results.js';
+import { bookTimeLimitHandler } from './lib.js';
 
 window.addEventListener('DOMContentLoaded', () => {
   renderUserBlock();

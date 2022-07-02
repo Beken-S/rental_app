@@ -1,4 +1,4 @@
-import { Active, ToggleIdPrefix } from './types/types.js';
+import { Active, SelectOption, ToggleIdPrefix } from './types/types.js';
 import { store } from './store/store.js';
 import { getSearchFormData } from './search-form.js';
 import { SearchFormId, ToBookIdPrefix } from './types/types.js';
@@ -8,6 +8,7 @@ import { FlatRentProvider } from './store/providers/flat-rent-sdk/flat-rent-sdk-
 import { HomyProvider } from './store/providers/homy-api/homy-api-provider.js';
 import { renderUserBlock } from './user.js';
 import { BookResponse } from './store/domain/book-response.js';
+import { renderSearchResultsList } from './search-results.js';
 
 export function renderBlock(elementId, html) {
   const element = document.getElementById(elementId);
@@ -166,4 +167,48 @@ export function isFavoriteItem(id: string): boolean {
   const favoriteItems = store.favoriteItems;
 
   return favoriteItems[placeId] != null ? true : false;
+}
+
+export function sortSearchResult(event: Event): void {
+  const target = event.target;
+
+  if (!(target instanceof HTMLSelectElement)) return;
+
+  switch (target.value) {
+    case SelectOption.Descending:
+      store.sortSearchResultByDescendingPrice();
+      renderSearchResultsList();
+      break;
+    case SelectOption.Ascending:
+      store.sortSearchResultByAscendingPrice();
+      renderSearchResultsList();
+      break;
+    case SelectOption.Closer:
+      store.sortSearchResultByCloser();
+      renderSearchResultsList();
+      break;
+    default:
+  }
+}
+
+export function bookTimeLimitHandler(): void {
+  const toBookButtons = document.querySelectorAll(
+    '.result-info--footer button'
+  );
+  toBookButtons.forEach((button) =>
+    button.setAttribute('disabled', 'disabled')
+  );
+
+  renderToast(
+    {
+      text: 'Пожалуйста обновите результаты поиска.',
+      type: 'error',
+    },
+    {
+      name: 'Закрыть',
+      handler: () => {
+        console.log('Уведомление закрыто');
+      },
+    }
+  );
 }

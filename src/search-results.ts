@@ -2,10 +2,10 @@ import {
   renderBlock,
   toggleFavorite,
   toBook,
-  renderToast,
   isFavoriteItem,
+  sortSearchResult,
 } from './lib.js';
-import { ToBookIdPrefix, ToggleIdPrefix } from './types/types.js';
+import { ToBookIdPrefix, ToggleIdPrefix, SelectOption } from './types/types.js';
 import { store } from './store/store.js';
 
 export function renderSearchStubBlock() {
@@ -32,10 +32,10 @@ export function renderEmptyOrErrorSearchBlock(reasonMessage) {
   );
 }
 
-export function getSearchResultsMarkup() {
+export function getSearchResultsListItem() {
   const places = store.searchResult;
 
-  let markup = '';
+  let list = '';
 
   places.forEach((place) => {
     const { name, description, remoteness, image, price } = place;
@@ -43,7 +43,7 @@ export function getSearchResultsMarkup() {
     const toggleId = `${toggleIdPrefix}${place.id}`;
     const toBookIdPrefix: ToBookIdPrefix = 'to-book-';
     const toBookId = `${toBookIdPrefix}${place.id}`;
-    markup += `
+    list += `
       <li class="result">
         <div class="result-container">
           <div class="result-img-container">
@@ -74,7 +74,7 @@ export function getSearchResultsMarkup() {
     `;
   });
 
-  return markup;
+  return list;
 }
 
 export function renderSearchResultsBlock() {
@@ -86,14 +86,14 @@ export function renderSearchResultsBlock() {
         <div class="search-results-filter">
             <span><i class="icon icon-filter"></i> Сортировать:</span>
             <select>
-                <option selected="">Сначала дешёвые</option>
-                <option selected="">Сначала дорогие</option>
-                <option>Сначала ближе</option>
+                <option selected="">${SelectOption.Ascending}</option>
+                <option selected="">${SelectOption.Descending}</option>
+                <option>${SelectOption.Closer}</option>
             </select>
         </div>
     </div>
-    <ul class="results-list">
-      ${getSearchResultsMarkup()}
+    <ul id="results-list" class="results-list">
+      ${getSearchResultsListItem()}
     </ul>
     `
   );
@@ -109,26 +109,10 @@ export function renderSearchResultsBlock() {
   toBookButtons.forEach((button) => {
     button.addEventListener('click', (event) => toBook(event));
   });
+  const selectFilter = document.querySelector('.search-results-filter select');
+  selectFilter.addEventListener('change', sortSearchResult);
 }
 
-export function bookTimeLimitHandler(): void {
-  const toBookButtons = document.querySelectorAll(
-    '.result-info--footer button'
-  );
-  toBookButtons.forEach((button) =>
-    button.setAttribute('disabled', 'disabled')
-  );
-
-  renderToast(
-    {
-      text: 'Пожалуйста обновите результаты поиска.',
-      type: 'error',
-    },
-    {
-      name: 'Закрыть',
-      handler: () => {
-        console.log('Уведомление закрыто');
-      },
-    }
-  );
+export function renderSearchResultsList() {
+  renderBlock('results-list', `${getSearchResultsListItem()}`);
 }

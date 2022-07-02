@@ -67,6 +67,7 @@ export async function search(data: SearchFormData): Promise<void> {
   const places: Place[] = [].concat(...searchResult);
 
   store.searchResult = places;
+  store.sortSearchResultByDescendingPrice();
 }
 
 export async function searchPlaceHandler(event: Event): Promise<void> {
