@@ -1,7 +1,6 @@
 import { Place } from '../../domain/place.js';
 import { Provider } from '../../domain/provider.js';
 import { SearchFilter } from '../../domain/search-filter.js';
-import { BookFilter } from '../../domain/book-filter.js';
 import { HTTPHelper } from '../../../helpers/http-helper.js';
 import {
   Place as HomyPlace,
@@ -17,7 +16,7 @@ export class HomyProvider implements Provider {
   private static apiURL = 'http://localhost:3030';
   private static placeRoot = '/places';
 
-  public async get(id: string): Promise<Place> {
+  public async get(id: string): Promise<Place | void> {
     try {
       const response = await HTTPHelper.fetchAsJson<HomyPlace>(
         this._getURL(id)
@@ -27,7 +26,9 @@ export class HomyProvider implements Provider {
 
       this._isValidResponse(response);
 
-      return this._convertToPlace(response);
+      const place = this._convertToPlace(response);
+
+      return place;
     } catch (error) {
       console.error(error);
     }
@@ -36,6 +37,9 @@ export class HomyProvider implements Provider {
   public async search(filter: SearchFilter): Promise<Place[]> {
     try {
       const homyFilter = this._convertToHomySearchFilter(filter);
+
+      if (homyFilter == null) throw new Error('Wrong filter.');
+
       const response = await HTTPHelper.fetchAsJson<HomyPlace[]>(
         this._getURL(null, homyFilter)
       );
@@ -47,6 +51,7 @@ export class HomyProvider implements Provider {
       return response.map((item) => this._convertToPlace(item));
     } catch (error) {
       console.error(error);
+      return [];
     }
   }
 
@@ -60,16 +65,17 @@ export class HomyProvider implements Provider {
         }
       );
 
-      if (response instanceof Error) return BookResponse.failure;
+      if (response instanceof Error) throw response;
 
       return BookResponse.success;
     } catch (error) {
       console.error(error);
+      return BookResponse.failure;
     }
   }
 
   private _getURL(
-    id?: string,
+    id?: string | null,
     filter?: HomySearchFilter | HomyBookFilter,
     root = true
   ) {
@@ -101,7 +107,9 @@ export class HomyProvider implements Provider {
     );
   }
 
-  private _convertToHomySearchFilter(filter: SearchFilter): HomySearchFilter {
+  private _convertToHomySearchFilter(
+    filter: SearchFilter
+  ): HomySearchFilter | void {
     const { checkInDate, checkOutDate, priceLimit, coordinates } = filter;
     try {
       if (coordinates == null) throw new Error('Missing coordinate field.');
@@ -120,7 +128,7 @@ export class HomyProvider implements Provider {
     }
   }
 
-  private _convertToHomyBookFilter(filter: BookFilter): HomyBookFilter {
+  private _convertToHomyBookFilter(filter: SearchFilter): HomyBookFilter {
     const { checkInDate, checkOutDate } = filter;
     return {
       checkInDate: checkInDate.getTime(),

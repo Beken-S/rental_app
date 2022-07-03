@@ -9,13 +9,16 @@ import { HomyProvider } from './store/providers/homy-api/homy-api-provider.js';
 import { renderUserBlock } from './user.js';
 import { BookResponse } from './store/domain/book-response.js';
 import { renderSearchResultsList } from './search-results.js';
+import { Message, MessageType } from './types/message.js';
+import { Action } from './types/action.js';
 
-export function renderBlock(elementId, html) {
+export function renderBlock(elementId: string, html: string): void {
   const element = document.getElementById(elementId);
-  element.innerHTML = html;
+
+  if (element instanceof Element) element.innerHTML = html;
 }
 
-export function renderToast(message, action) {
+export function renderToast(message: Message, action: Action) {
   let messageText = '';
 
   if (message != null) {
@@ -35,7 +38,6 @@ export function renderToast(message, action) {
       if (action != null && action.handler != null) {
         action.handler();
       }
-      renderToast(null, null);
     };
   }
 }
@@ -76,7 +78,11 @@ export async function toBook(event: Event): Promise<void> {
     }
 
     const fromId: SearchFormId = 'search-form';
-    const { filter, providers } = getSearchFormData(fromId);
+    const formData = getSearchFormData(fromId);
+
+    if (formData == null) return;
+
+    const { filter, providers } = formData;
 
     const provider = providers.find((provider) => {
       switch (providerName) {
@@ -85,15 +91,19 @@ export async function toBook(event: Event): Promise<void> {
         case Providers.FlatRentSDK:
           return provider instanceof FlatRentProvider;
         default:
+          return null;
       }
     });
+
+    if (provider == null) return;
+
     const result = await provider.book(originalId, filter);
 
     if (result === BookResponse.success) {
       renderToast(
         {
           text: 'Бронирование прошло успешно.',
-          type: 'success',
+          type: MessageType.Success,
         },
         {
           name: 'Ok',
@@ -106,7 +116,7 @@ export async function toBook(event: Event): Promise<void> {
       renderToast(
         {
           text: 'Произошла ошибка при бронировании.',
-          type: 'error',
+          type: MessageType.Error,
         },
         {
           name: 'Ok',
@@ -124,7 +134,11 @@ export async function toBook(event: Event): Promise<void> {
 export async function addFavoriteItem(id: string): Promise<void> {
   try {
     const fromId: SearchFormId = 'search-form';
-    const { providers } = getSearchFormData(fromId);
+    const formData = getSearchFormData(fromId);
+
+    if (formData == null) return;
+
+    const { providers } = formData;
     const [providerName, originalId] = id.split('-');
 
     if (providerName == null || originalId == null) {
@@ -138,14 +152,19 @@ export async function addFavoriteItem(id: string): Promise<void> {
         case Providers.FlatRentSDK:
           return provider instanceof FlatRentProvider;
         default:
+          return null;
       }
     });
 
+    if (provider == null) return;
+
     const place = await provider.get(originalId);
+
+    if (place == null) return;
 
     store.addFavoriteItems(place);
   } catch (error) {
-    console.error(error.message);
+    console.error(error);
   }
 }
 
@@ -202,7 +221,7 @@ export function bookTimeLimitHandler(): void {
   renderToast(
     {
       text: 'Пожалуйста обновите результаты поиска.',
-      type: 'error',
+      type: MessageType.Error,
     },
     {
       name: 'Закрыть',

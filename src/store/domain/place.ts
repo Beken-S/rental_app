@@ -42,7 +42,7 @@ export function isIPlace(object: unknown): object is IPlace {
     'remoteness',
   ];
 
-  if (typeof object === 'object') {
+  if (typeof object === 'object' && object != null) {
     return fields.every((field) => field in object);
   }
 

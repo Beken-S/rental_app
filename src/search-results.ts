@@ -20,7 +20,7 @@ export function renderSearchStubBlock() {
   );
 }
 
-export function renderEmptyOrErrorSearchBlock(reasonMessage) {
+export function renderEmptyOrErrorSearchBlock(reasonMessage: string) {
   renderBlock(
     'search-results-block',
     `
@@ -110,7 +110,9 @@ export function renderSearchResultsBlock() {
     button.addEventListener('click', (event) => toBook(event));
   });
   const selectFilter = document.querySelector('.search-results-filter select');
-  selectFilter.addEventListener('change', sortSearchResult);
+  if (selectFilter instanceof Element) {
+    selectFilter.addEventListener('change', sortSearchResult);
+  }
 }
 
 export function renderSearchResultsList() {

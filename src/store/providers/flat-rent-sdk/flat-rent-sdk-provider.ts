@@ -16,7 +16,7 @@ export class FlatRentProvider implements Provider {
 
   constructor(private readonly coordinates: Coordinates) {}
 
-  public async get(id: string): Promise<Place> {
+  public async get(id: string): Promise<Place | void> {
     try {
       const response = await FlatRentProvider.sdk.get(id);
 
@@ -33,6 +33,9 @@ export class FlatRentProvider implements Provider {
   public async search(filter: SearchFilter): Promise<Place[]> {
     try {
       const parameters = this._convertToIFlatRentSearchParameters(filter);
+
+      if (parameters == null) throw new Error('Wrong parameters.');
+
       const response = await FlatRentProvider.sdk.search(parameters);
 
       if (response instanceof Error) throw response;
@@ -40,6 +43,7 @@ export class FlatRentProvider implements Provider {
       return response.map((item) => this._convertToPlace(item));
     } catch (error) {
       console.error(error);
+      return [];
     }
   }
 
@@ -58,6 +62,8 @@ export class FlatRentProvider implements Provider {
     const { id, title, details, bookedDates, photos, coordinates, totalPrice } =
       flatRentPlace;
 
+    const image = photos[0] != null ? photos[0] : '';
+
     return new Place(
       FlatRentProvider.provider,
       id,
@@ -65,25 +71,28 @@ export class FlatRentProvider implements Provider {
       details,
       bookedDates,
       totalPrice,
-      photos[0],
+      image,
       this._calcRemoteness(coordinates)
     );
   }
 
   private _convertToIFlatRentSearchParameters(
     filter: SearchFilter
-  ): IFlatRentSearchParameters {
+  ): IFlatRentSearchParameters | void {
     try {
       const { city, checkInDate, checkOutDate, priceLimit } = filter;
 
       if (city == null) throw new Error('Missing city field.');
 
-      return {
+      const searchParameters: IFlatRentSearchParameters = {
         city,
         checkInDate,
         checkOutDate,
-        priceLimit,
       };
+
+      if (priceLimit != null) filter.priceLimit = priceLimit;
+
+      return searchParameters;
     } catch (error) {
       console.error(error);
     }

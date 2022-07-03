@@ -7,7 +7,7 @@ export interface FavoriteItems {
 
 export class Store {
   private _favoriteAmount = 0;
-  private _favoriteItems: FavoriteItems;
+  private _favoriteItems: FavoriteItems = {};
   private _searchResult: Place[] = [];
 
   constructor(private _user: User) {
@@ -55,9 +55,15 @@ export class Store {
   }
 
   private readFavoriteItemsFromLocalStorage(): void {
-    const favoriteItems = JSON.parse(localStorage.getItem('favoriteItems'));
+    const storageItem = localStorage.getItem('favoriteItems');
 
-    if (favoriteItems != null) {
+    if (storageItem == null) return;
+
+    const favoriteItems = JSON.parse(storageItem);
+
+    if (favoriteItems != null && typeof favoriteItems == 'object') {
+      const acc: FavoriteItems = {};
+
       this._favoriteItems = Object.keys(favoriteItems).reduce((acc, key) => {
         const item = favoriteItems[key];
 
@@ -84,10 +90,9 @@ export class Store {
             remoteness
           );
           acc[place.id] = place;
-
-          return acc;
         }
-      }, {});
+        return acc;
+      }, acc);
     } else {
       this._favoriteItems = {};
       localStorage.setItem(

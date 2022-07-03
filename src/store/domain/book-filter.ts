@@ -6,7 +6,7 @@ export interface BookFilter {
 export function isBookFilter(object: unknown): object is BookFilter {
   const fields = ['checkInDate', 'checkOutDate'];
 
-  if (typeof object === 'object') {
+  if (typeof object === 'object' && object != null) {
     return fields.every((field) => field in object);
   }
 

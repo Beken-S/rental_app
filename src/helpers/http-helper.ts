@@ -1,3 +1,5 @@
+import { Filter } from '../store/domain/filter';
+
 export abstract class HTTPHelper {
   public static async fetchAsJson<Response>(
     input: RequestInfo,
@@ -8,21 +10,24 @@ export abstract class HTTPHelper {
 
       if (!response.ok) {
         const errorMessage = await response.text();
-        return new Error(errorMessage);
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
 
       return data;
     } catch (error) {
-      console.error(error);
+      if (error instanceof Error) return error;
+      return new Error(`Unknown error: ${error}`);
     }
   }
-  public static getQueryString(params: object) {
+  public static getQueryString(params: Filter<string | number | undefined>) {
     return (
       '?' +
       Object.keys(params)
-        .map((key) => `${key}=${params[key]}`)
+        .map((key) => {
+          return params[key] != undefined ? `${key}=${params[key]}` : '';
+        })
         .join('&')
     );
   }

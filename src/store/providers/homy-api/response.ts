@@ -19,7 +19,7 @@ export function isPlace(object: unknown): object is Place {
     'remoteness',
   ];
 
-  if (typeof object === 'object') {
+  if (typeof object === 'object' && object != null) {
     return fields.every((field) => field in object);
   }
 

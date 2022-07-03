@@ -1,5 +1,5 @@
 export class Timer {
-  id: number | null;
+  id: number | null = null;
   _timerEndEvent: Event;
 
   constructor() {

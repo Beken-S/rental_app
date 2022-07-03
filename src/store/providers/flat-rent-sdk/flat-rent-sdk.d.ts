@@ -3,7 +3,7 @@ export type BackendPort = 3040;
 export type FlatRentDBLocalStorageKey = 'flat-rent-db';
 
 export function cloneDate(date: Date): Date;
-export function addDays(data: Date, days: number);
+export function addDays(data: Date, days: number): Date;
 
 export interface IFlatRentPlace {
   id: string;
@@ -23,7 +23,7 @@ export interface IFlatRentSearchParameters {
   city: string;
   checkInDate: Date;
   checkOutDate: Date;
-  priceLimit: number;
+  priceLimit?: number;
 }
 
 export class FlatRentSdk {
