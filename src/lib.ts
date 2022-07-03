@@ -18,7 +18,7 @@ export function renderBlock(elementId: string, html: string): void {
   if (element instanceof Element) element.innerHTML = html;
 }
 
-export function renderToast(message: Message, action: Action) {
+export function renderToast(message: Message | null, action: Action | null) {
   let messageText = '';
 
   if (message != null) {
@@ -38,6 +38,7 @@ export function renderToast(message: Message, action: Action) {
       if (action != null && action.handler != null) {
         action.handler();
       }
+      renderToast(null, null);
     };
   }
 }

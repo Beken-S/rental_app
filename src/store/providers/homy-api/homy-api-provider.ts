@@ -69,7 +69,6 @@ export class HomyProvider implements Provider {
 
       return BookResponse.success;
     } catch (error) {
-      console.error(error);
       return BookResponse.failure;
     }
   }
